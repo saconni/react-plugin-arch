@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@material-ui/core": "^4.6.0",
+    "bows": "^1.7.1",
+    "debug": "^4.1.1",
+    "object-path": "^0.11.4",
+    "object-path-immutable": "^4.0.2",
     "react": "^16.11.0",
     "react-dom": "^16.11.0",
     "react-scripts": "3.2.0"

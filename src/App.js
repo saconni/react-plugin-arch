@@ -1,26 +1,25 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { GlobalContextProvider, usePlugin } from './core/GlobalContext'
+import { ModalDialogPlugin } from './plugins/ModalDialog'
+import { UnlockTerminal } from './plugins/UnlockTerminal'
+import { ActivateTerminalPlugin } from './plugins/ActivateTerminal'
+
+function Test(props) {
+
+  usePlugin(null, ['modal-dialog', 'unlock-terminal'])
+
+  return <></>
+}
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <GlobalContextProvider>
+      <ActivateTerminalPlugin />
+      <ModalDialogPlugin />
+      <Test />
+      <UnlockTerminal />
+    </GlobalContextProvider>
+  )
 }
 
 export default App;
