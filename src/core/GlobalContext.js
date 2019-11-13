@@ -41,6 +41,7 @@ export function useGlobalContext() {
 export function usePlugin(initializer, deps) {
   // store a finalizer
   let [finalizer, setFinalizer] = useState(null)
+  let [initialized, setInitialized] = useState(false)
   // get the global context
   let context = useGlobalContext()
 
@@ -49,11 +50,12 @@ export function usePlugin(initializer, deps) {
   let ready = args.indexOf(undefined) === -1
 
   // no finalizer means we are not yet activated
-  if(finalizer == null) {
+  if(!initialized) {
     if(ready) {
       log('calling plugin initializer', { initializer })
       let ret = null
       if(typeof initializer === 'function') {
+        setInitialized(true)
         ret = initializer.apply(null, args) || (() => {})
       }
       if(ret && typeof ret.then === 'function') {
@@ -64,6 +66,7 @@ export function usePlugin(initializer, deps) {
     }
   } else {
     if(!ready) {
+      setInitialized(true)
       finalizer.finalize()
       setFinalizer(null)
     }
