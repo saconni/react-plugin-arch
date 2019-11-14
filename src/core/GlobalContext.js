@@ -15,7 +15,7 @@ function defaultReducer(state, action) {
       if(state.plugins[action.name] !== undefined) {
         throw new Error('duplicated plugin')
       }
-      return immutable.merge(state, 'plugins', { [action.name]: action.plugin })
+      return immutable.merge(state, 'plugins', { [action.name]: action.plugin || null })
     case 'DEACTIVATE_PLUGIN':
       if(objectPath.has(state, ['plugins', action.name])) {
         return immutable.del(state, ['plugins', action.name])
@@ -52,10 +52,10 @@ export function usePlugin(initializer, deps) {
   // no finalizer means we are not yet activated
   if(!initialized) {
     if(ready) {
-      log('calling plugin initializer', { initializer })
       let ret = null
+      setInitialized(true)
       if(typeof initializer === 'function') {
-        setInitialized(true)
+        log('calling plugin initializer', { fn: initializer })
         ret = initializer.apply(null, args) || (() => {})
       }
       if(ret && typeof ret.then === 'function') {
@@ -79,10 +79,13 @@ export function usePlugin(initializer, deps) {
       finalizer.finalize()
     }
   })
+
+  return args
 }
 
 function rootReducer(state, action) {
-  log('processing action', action)
+  let {type, ...others} = action
+  log('processing action', type, others)
   let firstReducer = null
   let newState = state
   state.core.reducers.forEach(reducer => {

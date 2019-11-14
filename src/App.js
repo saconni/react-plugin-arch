@@ -1,10 +1,8 @@
-import React, { Suspense } from 'react';
+import React, { useState, Suspense } from 'react';
 import { GlobalContextProvider, usePlugin } from './core/GlobalContext'
-import { ModalDialogPlugin } from './plugins/ModalDialog'
-import { UnlockTerminal } from './plugins/UnlockTerminal'
-//import ActivateTerminalPlugin from './plugins/ActivateTerminal'
+import { useInit } from './core/utils'
 
-let ActivateTerminalPlugin = React.lazy(() => import('./plugins/ActivateTerminal'))
+import availablePlugins from './plugins'
 
 function Test(props) {
 
@@ -14,13 +12,35 @@ function Test(props) {
 }
 
 function App() {
+  let [plugins, setPlugins] = useState({})
+
+  useInit(() => {
+    Object.keys(availablePlugins).reduce((prev, current) => {
+      return prev.then((pending) => {
+        return new Promise((resolve, reject) => {
+          resolve({...pending, [current]: React.lazy(availablePlugins[current])})
+          // the below code imports the plugin with out React.lazy
+          /*
+          availablePlugins[current]().then(plugin => {
+            console.log(current)
+            resolve({...pending, [current]: plugin.default})
+          })
+          */
+        })
+      })
+    }, Promise.resolve()).then(pending => {
+      setPlugins(pending)
+    })
+  })
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <GlobalContextProvider>
-        <ActivateTerminalPlugin />
-        <ModalDialogPlugin />
+        {Object.keys(plugins).map(key => {
+          let ElementType = plugins[key]
+          return <ElementType key={key} />
+        })}
         <Test />
-        <UnlockTerminal />
       </GlobalContextProvider>
     </Suspense>
   )

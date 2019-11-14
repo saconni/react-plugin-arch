@@ -1,7 +1,8 @@
 import React from 'react'
-import { useGlobalContext, usePlugin } from '../../core/GlobalContext'
+import { useGlobalContext, usePlugin } from '../core/GlobalContext'
+import { ModalDialog } from './ModalDialog/ModalDialogWeb'
 
-export { DialogTitle, DialogContent, DialogContentText, DialogActions, DialogButton } from './ModalDialogWeb'
+export { DialogTitle, DialogContent, DialogContentText, DialogActions, DialogButton } from './ModalDialog/ModalDialogWeb'
 
 let immutable = require('object-path-immutable')
 let objectPath = require('object-path')
@@ -43,7 +44,7 @@ class ModalDialogFunctions {
   }
 }
 
-export function ModalDialogPlugin(props) {
+export default function ModalDialogPlugin(props) {
   let context = useGlobalContext()
 
   usePlugin(() => {
@@ -59,5 +60,5 @@ export function ModalDialogPlugin(props) {
   let active = context.pluginIsActive('modal-dialog')
   let {open, content} = context.get('storage.modal-dialog', {open: false})
   
-  return active && <>{open && content}</>
+  return active && <ModalDialog open={open}>{content || <></>}</ModalDialog>
 }

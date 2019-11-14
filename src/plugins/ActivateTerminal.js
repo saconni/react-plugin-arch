@@ -5,12 +5,14 @@ import { DialogTitle, DialogContent, DialogContentText, DialogActions, DialogBut
 export default function ActivateTerminalPlugin(props) {
   let context = useGlobalContext()
   
-  usePlugin(async modal => {
+  usePlugin(async (modal, config)=> {
+    config.putValue('something', 'value')
     // show welcome dialog
     await modal.doModalDialog(resolve => createWelcomeDialog(resolve))
+    config.putValue('something else', 'value')
     // activate plugin
     context.activatePlugin('activate-terminal')
-  }, ['modal-dialog'])
+  }, ['modal-dialog', 'config'])
 
   return <></>
 }
