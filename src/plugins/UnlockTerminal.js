@@ -12,7 +12,11 @@ function createPlugin(plugin, dependencies) {
 
 export default createPlugin((context, modal) => {
   context.activatePlugin('unlock-terminal')
-}, ['modal-dialog', 'activate-terminal'])
+  context.dispatch({ type: 'MOUNT_MAIN_COMPONENT', component: <h1>Hola Mundo!</h1> })
+  setTimeout(() => {
+    context.dispatch({ type: 'UNMOUNT_MAIN_COMPONENT' })
+  }, 10000)
+}, ['modal-dialog', 'activate-terminal', 'display-manager'])
 
 /*
 export default function UnlockTerminalPlugin(props) {
