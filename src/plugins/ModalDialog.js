@@ -5,14 +5,14 @@ import { ModalDialog } from './ModalDialog/ModalDialogWeb'
 export { DialogTitle, DialogContent, DialogContentText, DialogActions, DialogButton } from './ModalDialog/ModalDialogWeb'
 
 let immutable = require('object-path-immutable')
-let objectPath = require('object-path')
 
 function reducer(state, action) {
   switch(action.type) {
     case 'SHOW_MODAL_DIALOG':
-      let ret = immutable.set(state, 'storage.modal-dialog.open', true)
-      objectPath.set(ret, 'storage.modal-dialog.content', action.content)
-      return ret
+      return immutable.merge(state, 'storage.modal-dialog', {
+        open: true,
+        content: action.content
+      })
     case 'HIDE_MODAL_DIALOG':
       return immutable.set(state, 'storage.modal-dialog.open', false)
     default:

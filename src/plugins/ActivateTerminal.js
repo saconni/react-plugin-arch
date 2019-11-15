@@ -6,10 +6,8 @@ export default function ActivateTerminalPlugin(props) {
   let context = useGlobalContext()
   
   usePlugin(async (modal, config)=> {
-    config.putValue('something', 'value')
     // show welcome dialog
     await modal.doModalDialog(resolve => createWelcomeDialog(resolve))
-    config.putValue('something else', 'value')
     // activate plugin
     context.activatePlugin('activate-terminal')
   }, ['modal-dialog', 'config'])
@@ -20,7 +18,7 @@ export default function ActivateTerminalPlugin(props) {
 function createWelcomeDialog(resolve) {
   return (
     <>
-      <DialogTitle>Activate your Passort</DialogTitle>
+      <DialogTitle>Activate Passport</DialogTitle>
       <DialogContent>
         <DialogContentText>
           This terminal is not yet activated. Click NEXT to start the activation process.
