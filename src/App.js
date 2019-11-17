@@ -1,46 +1,50 @@
-import React, { useState, Suspense } from 'react';
-import { GlobalContextProvider, usePlugin } from './core/GlobalContext'
-import { useInit } from './core/utils'
-
-import availablePlugins from './plugins'
+import React, { Suspense } from 'react';
+import { GlobalContextProvider } from './core/GlobalContext'
+import ExtensionManager, { useExtension } from './core/ExtensionManager'
 
 function Test(props) {
 
-  usePlugin(null, ['modal-dialog', 'unlock-terminal'])
+  useExtension(null, ['modal-dialog', 'unlock-terminal'])
 
   return <></>
 }
 
-function App() {
-  let [plugins, setPlugins] = useState({})
+let bootExtensions = [
+  {
+    name: 'activate-terminal',
+    type: 'built-in',
+    url: 'ActivateTerminalPlugin'
+  },
+  {
+    name: 'config',
+    type: 'built-in',
+    url: 'ConfigPlugin'
+  },
+  {
+    name: 'database',
+    type: 'built-in',
+    url: 'DatabasePlugin'
+  },
+  {
+    name: 'display-manager',
+    type: 'built-in',
+    url: 'DisplayManagerPlugin'
+  },
+  {
+    name: 'modal-dialog',
+    type: 'built-in',
+    url: 'ModalDialogPlugin'
+  }
+]
 
-  useInit(() => {
-    Object.keys(availablePlugins).reduce((prev, current) => {
-      return prev.then((pending) => {
-        return new Promise((resolve, reject) => {
-          resolve({...pending, [current]: React.lazy(availablePlugins[current])})
-          // the below code imports the plugin with out React.lazy
-          /*
-          availablePlugins[current]().then(plugin => {
-            console.log(current)
-            resolve({...pending, [current]: plugin.default})
-          })
-          */
-        })
-      })
-    }, Promise.resolve()).then(pending => {
-      setPlugins(pending)
-    })
-  })
+function App() {
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <GlobalContextProvider>
-        {Object.keys(plugins).map(key => {
-          let ElementType = plugins[key]
-          return <ElementType key={key} />
-        })}
-        <Test />
+        <ExtensionManager boot={bootExtensions}>
+          <Test />
+        </ExtensionManager>
       </GlobalContextProvider>
     </Suspense>
   )

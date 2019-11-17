@@ -1,14 +1,17 @@
 import React from 'react'
-import { useGlobalContext, usePlugin } from '../core/GlobalContext'
+import { useGlobalContext } from '../core/GlobalContext'
+import { useExtension } from '../core/ExtensionManager'
 
 let immutable = require('object-path-immutable')
+
+let mainComponentPath = 'storage.display-manager.main-component'
 
 function displayManagerReducer(state, action) {
   switch(action.type) {
     case 'MOUNT_MAIN_COMPONENT':
-      return immutable.set(state, 'storage.display-manager.main-component', action.component)
+      return immutable.set(state, mainComponentPath, action.component)
     case 'UNMOUNT_MAIN_COMPONENT':
-      return immutable.del(state, 'storage.display-manager.main-component')
+      return immutable.del(state, mainComponentPath)
     default:
       return state
   }
@@ -17,10 +20,10 @@ function displayManagerReducer(state, action) {
 export default function DisplayManagerPlugin(props) {
   let context = useGlobalContext()
 
-  usePlugin(() => {
+  useExtension(() => {
     context.registerReducer(displayManagerReducer)
     context.activatePlugin('display-manager')
   })
 
-  return <div>{context.get('storage.display-manager.main-component', <></>)}</div>
+  return <div>{context.get(mainComponentPath, <></>)}</div>
 }

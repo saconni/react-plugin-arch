@@ -1,5 +1,6 @@
 import React from 'react'
-import { useGlobalContext, usePlugin } from '../core/GlobalContext'
+import { useGlobalContext  } from '../core/GlobalContext'
+import { useExtension, extensionIsActive } from '../core/ExtensionManager'
 import { ModalDialog } from './ModalDialog/ModalDialogWeb'
 
 export { DialogTitle, DialogContent, DialogContentText, DialogActions, DialogButton } from './ModalDialog/ModalDialogWeb'
@@ -47,7 +48,7 @@ class ModalDialogFunctions {
 export default function ModalDialogPlugin(props) {
   let context = useGlobalContext()
 
-  usePlugin(() => {
+  useExtension(() => {
     context.registerReducer(reducer)
     context.activatePlugin('modal-dialog', new ModalDialogFunctions(context))
     
@@ -57,7 +58,7 @@ export default function ModalDialogPlugin(props) {
     }
   })
 
-  let active = context.pluginIsActive('modal-dialog')
+  let active = extensionIsActive(context, 'modal-dialog')
   let {open, content} = context.get('storage.modal-dialog', {open: false})
   
   return active && <ModalDialog open={open}>{content || <></>}</ModalDialog>

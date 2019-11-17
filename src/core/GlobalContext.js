@@ -11,17 +11,8 @@ function defaultReducer(state, action) {
       return immutable.push(state, 'core.reducers', action.reducer)
     case 'UNREGISTER_REDUCER':
       return immutable.set(state, 'core.reducers', state.core.reducers.filter(r => r !== action.reducer))
-    case 'ACTIVATE_PLUGIN':
-      if(state.plugins[action.name] !== undefined) {
-        throw new Error('duplicated plugin')
-      }
-      return immutable.merge(state, 'plugins', { [action.name]: action.plugin || null })
-    case 'DEACTIVATE_PLUGIN':
-      if(objectPath.has(state, ['plugins', action.name])) {
-        return immutable.del(state, ['plugins', action.name])
-      } else {
-        return state
-      }
+    case 'EXTEND_CONTEXT':
+      return immutable.set(state, ['core', 'context-extensions', action.name], action.code)
     default:
       return state
   }
@@ -36,51 +27,6 @@ let initialState = {
 
 export function useGlobalContext() {
   return useContext(GlobalContext)
-}
-
-export function usePlugin(initializer, deps) {
-  // store a finalizer
-  let [finalizer, setFinalizer] = useState(null)
-  let [initialized, setInitialized] = useState(false)
-  // get the global context
-  let context = useGlobalContext()
-
-  let plugins = context.get('plugins')
-  let args = (deps || []).map(d=>plugins[d])
-  let ready = args.indexOf(undefined) === -1
-
-  // no finalizer means we are not yet activated
-  if(!initialized) {
-    if(ready) {
-      let ret = null
-      setInitialized(true)
-      if(typeof initializer === 'function') {
-        log('calling plugin initializer', { fn: initializer })
-        ret = initializer.apply(null, args) || (() => {})
-      }
-      if(ret && typeof ret.then === 'function') {
-        ret.then(() => setFinalizer({finalize: ret}))
-      } else {
-        setFinalizer({finalize: ret})
-      }
-    }
-  } else {
-    if(!ready) {
-      setInitialized(true)
-      finalizer.finalize()
-      setFinalizer(null)
-    }
-  }
-
-  // register a finalizer just 
-  // in case we are unmounted
-  useInit(() => () => {
-    if(finalizer) {
-      finalizer.finalize()
-    }
-  })
-
-  return args
 }
 
 function rootReducer(state, action) {
@@ -117,14 +63,14 @@ export function GlobalContextProvider(props) {
         }
         return value
       },
+      extend: (name, code) => {
+        dispatch({ type: 'EXTEND_CONTEXT', name, code })
+      },
       activatePlugin: (name, obj) => {
-        dispatch({type: 'ACTIVATE_PLUGIN', name, plugin: obj})
+        dispatch({type: 'ACTIVATE_EXTENSION', name, functions: obj})
       },
       deactivatePlugin: (name) => {
-        dispatch({type: 'DEACTIVATE_PLUGIN', name})
-      },
-      pluginIsActive: (name) => {
-        return objectPath.has(state, ['plugins', name])
+        dispatch({type: 'DEACTIVATE_EXTENSION', name})
       },
       registerReducer: (reducer) => {
         dispatch({type: 'REGISTER_REDUCER', reducer})

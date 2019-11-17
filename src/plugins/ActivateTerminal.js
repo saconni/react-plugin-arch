@@ -1,11 +1,12 @@
 import React from 'react'
-import { useGlobalContext, usePlugin } from '../core/GlobalContext'
+import { useGlobalContext } from '../core/GlobalContext'
+import { useExtension } from '../core/ExtensionManager'
 import { DialogTitle, DialogContent, DialogContentText, DialogActions, DialogButton } from './ModalDialog'
 
 export default function ActivateTerminalPlugin(props) {
   let context = useGlobalContext()
   
-  usePlugin(async (modal, config)=> {
+  useExtension(async (modal, config)=> {
     // show welcome dialog
     await modal.doModalDialog(resolve => createWelcomeDialog(resolve))
     // activate plugin

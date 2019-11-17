@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
-import { useGlobalContext, usePlugin } from '../core/GlobalContext'
+import { useGlobalContext } from '../core/GlobalContext'
+import { useExtension, extensionIsActive } from '../core/ExtensionManager'
 
 let immutable = require('object-path-immutable')
 
@@ -32,7 +33,7 @@ export default function ConfigPlugin(props) {
   let context = useGlobalContext()
 
   // plugin init
-  let [db] = usePlugin(async db => {
+  let [db] = useExtension(async db => {
     context.registerReducer(reducer)
     // restore from indexedDB
     let stored = await db.keyValuePairs.get('config', null)
@@ -44,7 +45,7 @@ export default function ConfigPlugin(props) {
     context.activatePlugin('config', new ConfigFunctions(context))
   }, ['database'])
 
-  let active = context.pluginIsActive('config')
+  let active = extensionIsActive(context, 'config')
 
   // persist every change on the config
   let config = context.get('storage.config', null)
