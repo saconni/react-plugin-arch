@@ -37,6 +37,11 @@ export default function ExtensionManager(props) {
 
   useInit(() => {
     context.registerReducer(reducerExtensionManager)
+
+    context.addMethod('activatePlugin', (name, functions) => {
+      context.dispatch( {type: 'ACTIVATE_EXTENSION', name, functions} )
+    })
+
     loadExtensions(bootExtensions).then(extensions => {
       Object.keys(extensions).forEach(key => {
         context.dispatch({ type: 'INSTALL_EXTENSION', name: key, extension: extensions[key] })
@@ -83,7 +88,7 @@ export function useExtension(initializer, dependencies) {
     }
   } else {
     if(!ready) {
-      setInitialized(true)
+      setInitialized(false)
       finalizer.finalize()
       setFinalizer(null)
     }

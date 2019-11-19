@@ -1,5 +1,4 @@
-import React, { useContext, useReducer, useMemo, useState } from 'react'
-import { useInit } from './utils'
+import React, { useContext, useReducer, useMemo } from 'react'
 
 let immutable = require('object-path-immutable')
 let objectPath = require('object-path')
@@ -11,8 +10,8 @@ function defaultReducer(state, action) {
       return immutable.push(state, 'core.reducers', action.reducer)
     case 'UNREGISTER_REDUCER':
       return immutable.set(state, 'core.reducers', state.core.reducers.filter(r => r !== action.reducer))
-    case 'EXTEND_CONTEXT':
-      return immutable.set(state, ['core', 'context-extensions', action.name], action.code)
+    case 'ADD_CONTEXT_METHOD':
+      return immutable.set(state, ['core', 'context-methods', action.name], action.code)
     default:
       return state
   }
@@ -49,36 +48,44 @@ function rootReducer(state, action) {
   return newState
 }
 
+class ContextFunctions {
+  constructor(state, dispatch) {
+    this.state = state
+    this.dispatch = dispatch
+  }
+
+  get(path, _default) {
+    let val = objectPath.get(this.state, path, _default)
+    if(val === undefined) {
+      // maybe we could dispatch an error
+      throw new Error(`context value not found ${path}`)
+    }
+    return val
+  }
+
+  addMethod(name, code) {
+    this.dispatch({ type: 'ADD_CONTEXT_METHOD', name, code })
+  }
+
+  registerReducer (reducer) {
+    this.dispatch({type: 'REGISTER_REDUCER', reducer})
+  }
+
+  unregisterReducer(reducer) {
+    this.dispatch({type: 'UNREGISTER_REDUCER', reducer})
+  }
+}
+
 export function GlobalContextProvider(props) {
   let [state, dispatch] = useReducer(rootReducer, initialState)
 
   let value = useMemo(() => {
-    return {
-      state,
-      dispatch,
-      get: (path, _default) => {
-        let value = objectPath.get(state, path, _default)
-        if(value === undefined) {
-          throw new Error(`context value not found ${path}`)
-        }
-        return value
-      },
-      extend: (name, code) => {
-        dispatch({ type: 'EXTEND_CONTEXT', name, code })
-      },
-      activatePlugin: (name, obj) => {
-        dispatch({type: 'ACTIVATE_EXTENSION', name, functions: obj})
-      },
-      deactivatePlugin: (name) => {
-        dispatch({type: 'DEACTIVATE_EXTENSION', name})
-      },
-      registerReducer: (reducer) => {
-        dispatch({type: 'REGISTER_REDUCER', reducer})
-      },
-      unregisterReducer: (reducer) => {
-        dispatch({type: 'UNREGISTER_REDUCER', reducer})
-      }
-    }
+    let v = new ContextFunctions(state, dispatch)
+    let extraMethods = v.get(['core', 'context-methods'], {})
+    Object.keys(extraMethods).forEach(key => {
+      v[key] = extraMethods[key].bind(v)
+    })
+    return v
   }, [state])
 
   return <GlobalContext.Provider value={value}>{props.children}</GlobalContext.Provider>
